@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">LogMeasureApp</string>
+    <string name="measurements_title">Measurements</string>
+
+
+    <string name="measure_log_title">Measure Log</string>
 </resources>
