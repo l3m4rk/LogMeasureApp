@@ -4,4 +4,7 @@
 
 
     <string name="measure_log_title">New Log Measurement</string>
+    <string name="button_save_measurement">Save measurement</string>
+    <string name="button_reset">Reset</string>
+    <string name="button_pick_image">Pick image</string>
 </resources>
