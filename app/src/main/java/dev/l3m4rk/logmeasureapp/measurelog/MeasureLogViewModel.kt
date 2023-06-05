@@ -22,25 +22,18 @@ class MeasureLogViewModel @Inject constructor(
 
     private val _radius = MutableStateFlow(DEFAULT_RADIUS)
     private val _showDiameter = MutableStateFlow(false)
-    private val _showFab = MutableStateFlow(true)
     private val _state = MutableStateFlow(LogMeasureUiState())
     private val state = _state.asStateFlow()
-    private val _showError = MutableStateFlow(false)
-    private val _imageUri = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<LogMeasureUiState> =
         combine(
             _radius.map { it * 2 },
             _showDiameter,
             _state,
-            _showFab,
-            _showError
-        ) { diameter, shouldShow, state, showFab, showError ->
+        ) { diameter, shouldShow, state ->
             state.copy(
                 showDiameterMeasurer = shouldShow,
                 diameter = diameter,
-                showFab = showFab,
-                showError = showError
             )
         }
         .stateIn(
@@ -57,7 +50,9 @@ class MeasureLogViewModel @Inject constructor(
     }
 
     fun setImageToMeasure(uri: String) {
-        _imageUri.value = uri
+        _state.update {previousState ->
+            previousState.copy(imageUri = uri)
+        }
     }
 
     fun startDiameterMeasurement() {
@@ -65,7 +60,9 @@ class MeasureLogViewModel @Inject constructor(
     }
 
     fun consumeError() {
-        _showError.value = false
+        _state.update { state ->
+            state.copy(showError = false)
+        }
     }
 
     fun reset() {
@@ -77,8 +74,10 @@ class MeasureLogViewModel @Inject constructor(
         val radius = _radius.value
         val diameter = radius * 2
 
-        if (diameter == 0 || _imageUri.value == null) {
-            _showError.value = true
+        if (diameter == 0 || _state.value.imageUri == null) {
+            _state.update { state ->
+                state.copy(showError = true)
+            }
             return
         }
 

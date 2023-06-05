@@ -5,7 +5,7 @@ data class LogMeasureUiState(
     val diameter: Int = 0,
     val canSaveMeasurement: Boolean = true,
     val canReset: Boolean = true,
-    val showFab: Boolean = true,
     val showError: Boolean = false,
     val isMeasurementSaved: Boolean = false,
+    val imageUri: String? = null,
 )

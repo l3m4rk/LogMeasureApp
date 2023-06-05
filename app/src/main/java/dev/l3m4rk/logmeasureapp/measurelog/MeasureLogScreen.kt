@@ -6,7 +6,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -91,13 +90,10 @@ fun MeasureLogScreen(
     val primaryColor = MaterialTheme.colorScheme.primary
     val title = stringResource(R.string.measure_log_title)
 
-    var imageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
-
     val pickImage = rememberLauncherForActivityResult(
         contract = PickVisualMedia(),
         onResult = { uri: Uri? ->
             if (uri != null) {
-                imageUri = uri
                 setImageToMeasure(uri.toString())
             }
         }
@@ -123,12 +119,10 @@ fun MeasureLogScreen(
             )
         },
         floatingActionButton = {
-            AnimatedVisibility(uiState.showFab) {
-                ExtendedFloatingActionButton(
-                    onClick = { pickImage.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly)) }
-                ) {
-                    Text(stringResource(R.string.button_pick_image))
-                }
+            ExtendedFloatingActionButton(
+                onClick = { pickImage.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly)) }
+            ) {
+                Text(stringResource(R.string.button_pick_image))
             }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarState) }
@@ -168,7 +162,7 @@ fun MeasureLogScreen(
                 .fillMaxHeight(0.5f)
                 .background(MaterialTheme.colorScheme.secondary)
                 .transformable(state)
-                .paint(rememberAsyncImagePainter(imageUri), contentScale = ContentScale.Crop)
+                .paint(rememberAsyncImagePainter(uiState.imageUri), contentScale = ContentScale.Crop)
             ) {
 
                 var offsetX by remember { mutableStateOf(0f) }
