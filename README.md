@@ -40,5 +40,6 @@ Open the app folder in Terminal, attach device and run
 ## TODOs
 
 - [ ] Implement length measuring
+- [ ] Improve circle measurement UI element
 - [ ] Make app work in landscape mode
 - [ ] Improve UI/UX
