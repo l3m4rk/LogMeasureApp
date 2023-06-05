@@ -64,6 +64,10 @@ class MeasureLogViewModel @Inject constructor(
         _showDiameter.value = true
     }
 
+    fun consumeError() {
+        _showError.value = false
+    }
+
     fun reset() {
         _radius.value = DEFAULT_RADIUS
         _showDiameter.value = false

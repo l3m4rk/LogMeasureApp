@@ -33,11 +33,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import dev.l3m4rk.logmeasureapp.R
 import kotlin.math.roundToInt
@@ -63,17 +65,19 @@ import kotlin.math.roundToInt
 // TODO: rename to AddLogMeasurementScreen
 @Composable
 fun MeasureLogScreen(viewModel: MeasureLogViewModel = hiltViewModel(), onBack: () -> Unit) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     MeasureLogScreen(
         uiState = uiState,
         onScaleChange = viewModel::scale,
         onResetClick = viewModel::reset,
         saveMeasurement = viewModel::saveMeasurement,
         setImageToMeasure = viewModel::setImageToMeasure,
+        consumeError = viewModel::consumeError,
         onBack = onBack,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MeasureLogScreen(
     uiState: LogMeasureUiState,
@@ -81,6 +85,7 @@ fun MeasureLogScreen(
     onResetClick: () -> Unit = {},
     saveMeasurement: () -> Unit = {},
     setImageToMeasure: (uri: String) -> Unit = {},
+    consumeError: () -> Unit,
     onBack: () -> Unit
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -97,6 +102,8 @@ fun MeasureLogScreen(
             }
         }
     )
+
+    val snackbarState = remember { SnackbarHostState() }
 
     Scaffold(
         topBar = {
@@ -123,13 +130,20 @@ fun MeasureLogScreen(
                     Text(stringResource(R.string.button_pick_image))
                 }
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarState) }
     ) { paddingValues ->
-
 
         LaunchedEffect(uiState.isMeasurementSaved) {
             if (uiState.isMeasurementSaved) {
                 onBack()
+            }
+        }
+
+        LaunchedEffect(uiState.showError) {
+            if (uiState.showError) {
+                snackbarState.showSnackbar("Error during measurement. Try again.")
+                consumeError()
             }
         }
 
@@ -216,6 +230,7 @@ fun MeasureLogScreen(
 fun MeasureLogScreenPreview() {
     MeasureLogScreen(
         uiState = LogMeasureUiState(showDiameterMeasurer = true, diameter = 30),
+        consumeError = {},
         onBack = {}
     )
 }
