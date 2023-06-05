@@ -8,4 +8,7 @@
     <string name="button_reset">Reset</string>
     <string name="button_pick_image">Pick image</string>
     <string name="menu_back">Back</string>
+    <string name="button_measure">Measure</string>
+    <string name="cd_start_measure">Start measure</string>
+    <string name="empty_measurements_message">No measurements</string>
 </resources>

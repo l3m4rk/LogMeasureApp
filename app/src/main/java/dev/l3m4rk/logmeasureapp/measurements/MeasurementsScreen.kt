@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,6 +49,8 @@ fun MeasurementsScreen(
 fun MeasurementsScreen(state: MeasurementsUiState, onStartMeasureClick: () -> Unit = {}) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val title = stringResource(id = R.string.measurements_title)
+    val measureAction = stringResource(R.string.button_measure)
+    val noMeasurements = stringResource(R.string.empty_measurements_message)
 
     Scaffold(
         topBar = {
@@ -58,8 +61,13 @@ fun MeasurementsScreen(state: MeasurementsUiState, onStartMeasureClick: () -> Un
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                text = { Text("Measure") },
-                icon = { Icon(Icons.Default.AddChart, contentDescription = "Start measure") },
+                text = { Text(measureAction) },
+                icon = {
+                    Icon(
+                        Icons.Default.AddChart,
+                        contentDescription = stringResource(R.string.cd_start_measure)
+                    )
+                },
                 onClick = onStartMeasureClick
             )
         }
@@ -70,21 +78,29 @@ fun MeasurementsScreen(state: MeasurementsUiState, onStartMeasureClick: () -> Un
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "No measurements")
+                Text(noMeasurements)
             }
         } else {
-            Column(Modifier
-                .fillMaxSize()
-                .padding(paddingValues)) {
-                LazyColumn(
-                    Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(items, key = { item -> item.id }) { item: MeasurementItem ->
-                        Measurement(item)
-                    }
-                }
+            MeasurementsContent(paddingValues, items)
+        }
+    }
+}
+
+@Composable
+private fun MeasurementsContent(
+    paddingValues: PaddingValues,
+    items: List<MeasurementItem>
+) {
+    Column(Modifier
+        .fillMaxSize()
+        .padding(paddingValues)) {
+        LazyColumn(
+            Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            items(items, key = { item -> item.id }) { item: MeasurementItem ->
+                Measurement(item)
             }
         }
     }
@@ -99,7 +115,13 @@ fun Measurement(item: MeasurementItem, onItemClick: () -> Unit = {}) {
     ) {
         Text("Measurement ${item.id}")
         Text("Log diameter ${item.diameter} cm")
-        Text(item.createdAt)
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "Type: Diameter")
+            Text(item.createdAt)
+        }
     }
 }
 
