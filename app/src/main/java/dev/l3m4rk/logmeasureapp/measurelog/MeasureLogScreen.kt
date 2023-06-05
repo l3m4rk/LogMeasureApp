@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,14 +62,14 @@ import kotlin.math.roundToInt
 
 // TODO: rename to AddLogMeasurementScreen
 @Composable
-fun MeasureLogScreen(onBack: () -> Unit) {
-    val viewModel = hiltViewModel<MeasureLogViewModel>()
+fun MeasureLogScreen(viewModel: MeasureLogViewModel = hiltViewModel(), onBack: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     MeasureLogScreen(
         uiState = uiState,
         onScaleChange = viewModel::scale,
         onResetClick = viewModel::reset,
         saveMeasurement = viewModel::saveMeasurement,
+        setImageToMeasure = viewModel::setImageToMeasure,
         onBack = onBack,
     )
 }
@@ -79,6 +80,7 @@ fun MeasureLogScreen(
     onScaleChange: (scaleChange: Float) -> Unit = {},
     onResetClick: () -> Unit = {},
     saveMeasurement: () -> Unit = {},
+    setImageToMeasure: (uri: String) -> Unit = {},
     onBack: () -> Unit
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -91,6 +93,7 @@ fun MeasureLogScreen(
         onResult = { uri: Uri? ->
             if (uri != null) {
                 imageUri = uri
+                setImageToMeasure(uri.toString())
             }
         }
     )
@@ -122,6 +125,14 @@ fun MeasureLogScreen(
             }
         }
     ) { paddingValues ->
+
+
+        LaunchedEffect(uiState.isMeasurementSaved) {
+            if (uiState.isMeasurementSaved) {
+                onBack()
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -131,7 +142,8 @@ fun MeasureLogScreen(
             // TODO: implement length measuring
             val measuredLength by rememberSaveable { mutableStateOf(0) }
 
-            Text(text = "Log diameter: ${uiState.diameter} cm")
+            val logDiameter = stringResource(R.string.log_diameter, uiState.diameter)
+            Text(logDiameter)
             Text(text = "Log length: $measuredLength cm")
 
             val state = rememberTransformableState(onTransformation = { zoomChange, _, _ ->
@@ -163,7 +175,9 @@ fun MeasureLogScreen(
                     drawCircle(Color.Blue, center = center, style = Stroke(width = 2.dp.toPx()))
                 }
             }
-            val options = listOf("Diameter", "Length")
+            val diameterOption = stringResource(R.string.option_diameter)
+            val lengthOption = stringResource(R.string.option_length)
+            val options = listOf(diameterOption, lengthOption)
             val (selectedOption, onOptionSelected) = remember { mutableStateOf(options[0]) }
 
             Row(

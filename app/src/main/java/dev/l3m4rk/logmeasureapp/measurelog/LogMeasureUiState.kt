@@ -7,4 +7,5 @@ data class LogMeasureUiState(
     val canReset: Boolean = true,
     val showFab: Boolean = true,
     val showError: Boolean = false,
+    val isMeasurementSaved: Boolean = false,
 )

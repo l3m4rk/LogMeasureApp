@@ -7,6 +7,7 @@ import dev.l3m4rk.logmeasureapp.data.MeasurementsRepository
 import dev.l3m4rk.logmeasureapp.utils.WhileSubscribed
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -23,7 +24,9 @@ class MeasureLogViewModel @Inject constructor(
     private val _showDiameter = MutableStateFlow(false)
     private val _showFab = MutableStateFlow(true)
     private val _state = MutableStateFlow(LogMeasureUiState())
+    private val state = _state.asStateFlow()
     private val _showError = MutableStateFlow(false)
+    private val _imageUri = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<LogMeasureUiState> =
         combine(
@@ -48,9 +51,13 @@ class MeasureLogViewModel @Inject constructor(
 
 
     fun scale(scale: Float) {
-        _radius.update {
-            (it * scale).toInt()
+        _radius.update { radius ->
+            (radius * scale).toInt()
         }
+    }
+
+    fun setImageToMeasure(uri: String) {
+        _imageUri.value = uri
     }
 
     fun startDiameterMeasurement() {
@@ -66,13 +73,16 @@ class MeasureLogViewModel @Inject constructor(
         val radius = _radius.value
         val diameter = radius * 2
 
-        if (diameter == 0) {
+        if (diameter == 0 || _imageUri.value == null) {
             _showError.value = true
             return
         }
 
         viewModelScope.launch {
             repository.addDiameterMeasurement(diameter)
+        }
+        _state.update {
+            it.copy(isMeasurementSaved = true)
         }
     }
 

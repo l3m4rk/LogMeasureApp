@@ -11,4 +11,9 @@
     <string name="button_measure">Measure</string>
     <string name="cd_start_measure">Start measure</string>
     <string name="empty_measurements_message">No measurements</string>
+    <string name="option_diameter">Diameter</string>
+    <string name="option_length">Length</string>
+
+
+    <string name="log_diameter">"Log diameter: %1$d cm"</string>
 </resources>
