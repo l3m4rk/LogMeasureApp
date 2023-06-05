@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class LocalMeasurement(
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
     val diameter: Int,
+    val createdAt: Long,
 )
 
 //enum class MeasurementType {

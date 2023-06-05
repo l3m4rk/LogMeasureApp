@@ -22,11 +22,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,15 +59,17 @@ import coil.compose.rememberAsyncImagePainter
 import dev.l3m4rk.logmeasureapp.R
 import kotlin.math.roundToInt
 
+// TODO: rename to AddLogMeasurementScreen
 @Composable
-fun MeasureLogScreen() {
+fun MeasureLogScreen(onBack: () -> Unit) {
     val viewModel = hiltViewModel<MeasureLogViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     MeasureLogScreen(
         uiState = uiState,
         onScaleChange = viewModel::scale,
         onResetClick = viewModel::reset,
-        onSaveMeasurementClick = viewModel::onSaveMeasurement
+        saveMeasurement = viewModel::saveMeasurement,
+        onBack = onBack,
     )
 }
 
@@ -72,7 +78,8 @@ fun MeasureLogScreen(
     uiState: LogMeasureUiState,
     onScaleChange: (scaleChange: Float) -> Unit = {},
     onResetClick: () -> Unit = {},
-    onSaveMeasurementClick: () -> Unit = {},
+    saveMeasurement: () -> Unit = {},
+    onBack: () -> Unit
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val title = stringResource(R.string.measure_log_title)
@@ -90,8 +97,18 @@ fun MeasureLogScreen(
 
     Scaffold(
         topBar = {
+            val onPrimary = MaterialTheme.colorScheme.onPrimary
             CenterAlignedTopAppBar(
-                title = { Text(title, color = MaterialTheme.colorScheme.onPrimary) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.menu_back),
+                            tint = onPrimary
+                        )
+                    }
+                },
+                title = { Text(title, color = onPrimary) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = primaryColor),
             )
         },
@@ -170,7 +187,7 @@ fun MeasureLogScreen(
                 }
 
                 Button(
-                    onClick = onSaveMeasurementClick,
+                    onClick = saveMeasurement,
                     enabled = uiState.canSaveMeasurement
                 ) {
                     Text(stringResource(R.string.button_save_measurement))
@@ -183,5 +200,8 @@ fun MeasureLogScreen(
 @Preview
 @Composable
 fun MeasureLogScreenPreview() {
-    MeasureLogScreen(LogMeasureUiState(showDiameterMeasurer = true, diameter = 30))
+    MeasureLogScreen(
+        uiState = LogMeasureUiState(showDiameterMeasurer = true, diameter = 30),
+        onBack = {}
+    )
 }

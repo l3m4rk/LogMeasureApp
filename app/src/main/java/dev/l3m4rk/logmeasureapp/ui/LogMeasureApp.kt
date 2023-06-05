@@ -17,7 +17,7 @@ fun LogMeasureApp(modifier: Modifier = Modifier) {
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = MEASURE_LOG //MEASUREMENTS
+        startDestination = MEASUREMENTS
     ) {
         composable(MEASUREMENTS) {
             MeasurementsScreen(
@@ -27,7 +27,9 @@ fun LogMeasureApp(modifier: Modifier = Modifier) {
             )
         }
         composable(MEASURE_LOG) {
-            MeasureLogScreen()
+            MeasureLogScreen(onBack = {
+                navController.navigateUp()
+            })
         }
     }
 }

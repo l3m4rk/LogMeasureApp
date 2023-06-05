@@ -5,33 +5,32 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.l3m4rk.logmeasureapp.data.Measurement
 import dev.l3m4rk.logmeasureapp.data.MeasurementsRepository
-import kotlinx.coroutines.flow.SharingStarted
+import dev.l3m4rk.logmeasureapp.domain.FormatDataUseCase
+import dev.l3m4rk.logmeasureapp.utils.WhileSubscribed
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class MeasurementsViewModel @Inject constructor(
-    repository: MeasurementsRepository
+    repository: MeasurementsRepository,
+    formatData: FormatDataUseCase
 ) : ViewModel() {
 
     val uiState = repository.measurements
         .map { measurements: List<Measurement> ->
-            measurements.map { MeasurementItem(it.id, it.diameter, "Today") }
+            measurements.map {
+                MeasurementItem(
+                    it.id,
+                    it.diameter,
+                    formatData.invoke(it.date)
+                )
+            }
         }
+        .map { items -> MeasurementsUiState(items) }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = WhileSubscribed,
             initialValue = MeasurementsUiState(emptyList())
         )
 }
-
-data class MeasurementsUiState(
-    val measurements: List<MeasurementItem>
-)
-
-data class MeasurementItem(
-    val id: Long,
-    val diameter: Int,
-    val createdAt: String,
-)

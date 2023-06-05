@@ -16,7 +16,10 @@ class MeasurementsRepositoryImpl @Inject constructor(
         get() = dao.observeAll().map { it.toExternal() }
 
     override suspend fun addDiameterMeasurement(diameter: Int) {
-        val measurement = LocalMeasurement(diameter = diameter)
+        val measurement = LocalMeasurement(
+            diameter = diameter,
+            createdAt = System.currentTimeMillis()
+        )
         withContext(Dispatchers.IO) {
             dao.insertMeasurement(measurement)
         }
@@ -28,4 +31,4 @@ class MeasurementsRepositoryImpl @Inject constructor(
 }
 
 fun List<LocalMeasurement>.toExternal(): List<Measurement> =
-    this.map { Measurement(it.id, it.diameter) }
+    this.map { Measurement(it.id, it.diameter, it.createdAt) }
