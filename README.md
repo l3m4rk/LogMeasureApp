@@ -9,7 +9,7 @@ The simple app to measure log diameter and length.
 - Shows all measurements screen
 - Shows empty view if there are no measurements
 
-### AddNewMeasurement Screen
+### AddLogMeasurement Screen
 
 - Allows to pick an image from the gallery 
 - Add new measurement

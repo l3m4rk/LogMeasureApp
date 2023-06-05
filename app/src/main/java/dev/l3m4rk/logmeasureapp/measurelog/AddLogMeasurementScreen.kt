@@ -63,14 +63,13 @@ import coil.compose.rememberAsyncImagePainter
 import dev.l3m4rk.logmeasureapp.R
 import kotlin.math.roundToInt
 
-// TODO: rename to AddLogMeasurementScreen
 @Composable
-fun MeasureLogScreen(
+fun AddLogMeasurementScreen(
     viewModel: MeasureLogViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    MeasureLogScreen(
+    AddLogMeasurementScreen(
         uiState = uiState,
         onScaleChange = viewModel::scale,
         onResetClick = viewModel::reset,
@@ -84,7 +83,7 @@ fun MeasureLogScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MeasureLogScreen(
+fun AddLogMeasurementScreen(
     uiState: LogMeasureUiState,
     onScaleChange: (scaleChange: Float) -> Unit = {},
     onResetClick: () -> Unit = {},
@@ -296,7 +295,7 @@ private fun LinearMeasurer(uiState: LogMeasureUiState) {
 @Preview
 @Composable
 fun MeasureLogScreenPreview() {
-    MeasureLogScreen(
+    AddLogMeasurementScreen(
         uiState = LogMeasureUiState(diameter = 30),
         consumeError = {},
         selectMeasureType = {},
