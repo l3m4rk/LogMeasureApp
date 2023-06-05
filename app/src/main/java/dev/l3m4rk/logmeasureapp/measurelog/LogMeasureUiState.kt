@@ -1,7 +1,7 @@
 package dev.l3m4rk.logmeasureapp.measurelog
 
 data class LogMeasureUiState(
-    val showDiameterMeasurer: Boolean = false,
+    val measureType: MeasureType = MeasureType.DIAMETER,
     val diameter: Int = 0,
     val canSaveMeasurement: Boolean = true,
     val canReset: Boolean = true,
@@ -9,3 +9,8 @@ data class LogMeasureUiState(
     val isMeasurementSaved: Boolean = false,
     val imageUri: String? = null,
 )
+
+enum class MeasureType {
+    DIAMETER,
+    LENGTH
+}

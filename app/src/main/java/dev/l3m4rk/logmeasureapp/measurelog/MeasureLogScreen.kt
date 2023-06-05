@@ -2,6 +2,7 @@
 
 package dev.l3m4rk.logmeasureapp.measurelog
 
+import android.content.res.Configuration
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -51,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -63,7 +65,10 @@ import kotlin.math.roundToInt
 
 // TODO: rename to AddLogMeasurementScreen
 @Composable
-fun MeasureLogScreen(viewModel: MeasureLogViewModel = hiltViewModel(), onBack: () -> Unit) {
+fun MeasureLogScreen(
+    viewModel: MeasureLogViewModel = hiltViewModel(),
+    onBack: () -> Unit
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     MeasureLogScreen(
         uiState = uiState,
@@ -72,6 +77,7 @@ fun MeasureLogScreen(viewModel: MeasureLogViewModel = hiltViewModel(), onBack: (
         saveMeasurement = viewModel::saveMeasurement,
         setImageToMeasure = viewModel::setImageToMeasure,
         consumeError = viewModel::consumeError,
+        selectMeasureType = viewModel::selectMeasureType,
         onBack = onBack,
     )
 }
@@ -85,10 +91,12 @@ fun MeasureLogScreen(
     saveMeasurement: () -> Unit = {},
     setImageToMeasure: (uri: String) -> Unit = {},
     consumeError: () -> Unit,
+    selectMeasureType: (measureType: MeasureType) -> Unit,
     onBack: () -> Unit
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val title = stringResource(R.string.measure_log_title)
+    val measurementError = stringResource(R.string.error_measurement)
 
     val pickImage = rememberLauncherForActivityResult(
         contract = PickVisualMedia(),
@@ -136,86 +144,152 @@ fun MeasureLogScreen(
 
         LaunchedEffect(uiState.showError) {
             if (uiState.showError) {
-                snackbarState.showSnackbar("Error during measurement. Try again.")
+                snackbarState.showSnackbar(measurementError)
                 consumeError()
             }
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
         ) {
-            // TODO: implement length measuring
-            val measuredLength by rememberSaveable { mutableStateOf(0) }
-
-            val logDiameter = stringResource(R.string.log_diameter, uiState.diameter)
-            Text(logDiameter)
-            Text(text = "Log length: $measuredLength cm")
-
-            val state = rememberTransformableState(onTransformation = { zoomChange, _, _ ->
-                onScaleChange(zoomChange)
-            })
-
-            Box(modifier = Modifier
-                .fillMaxHeight(0.5f)
-                .background(MaterialTheme.colorScheme.secondary)
-                .transformable(state)
-                .paint(rememberAsyncImagePainter(uiState.imageUri), contentScale = ContentScale.Crop)
-            ) {
-
-                var offsetX by remember { mutableStateOf(0f) }
-                var offsetY by remember { mutableStateOf(0f) }
-
-                Canvas(modifier = Modifier
-                    .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
-                    .size(uiState.diameter.dp)
-                    .pointerInput(Unit) {
-                        detectDragGestures { change, dragAmount ->
-                            change.consume()
-                            offsetX += dragAmount.x
-                            offsetY += dragAmount.y
-                        }
+            val configuration = LocalConfiguration.current
+            when (configuration.orientation) {
+                Configuration.ORIENTATION_LANDSCAPE -> {
+                    Row {
+                        Text("Landscape")
                     }
-                ) {
-                    val center = Offset(size.width / 2, size.height / 2)
-                    drawCircle(Color.Blue, center = center, style = Stroke(width = 2.dp.toPx()))
                 }
-            }
-            val diameterOption = stringResource(R.string.option_diameter)
-            val lengthOption = stringResource(R.string.option_length)
-            val options = listOf(diameterOption, lengthOption)
-            val (selectedOption, onOptionSelected) = remember { mutableStateOf(options[0]) }
 
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                options.forEach { option ->
-                    FilterChip(
-                        selected = (option == selectedOption),
-                        onClick = { onOptionSelected(option) },
-                        label = { Text(option) }
+                Configuration.ORIENTATION_PORTRAIT -> {
+                    PortraitAddLogMeasurement(
+                        uiState,
+                        onScaleChange,
+                        onResetClick,
+                        saveMeasurement,
+                        selectMeasureType
                     )
                 }
             }
-            Row {
-                Button(
-                    onClick = onResetClick,
-                    enabled = uiState.canReset,
-                ) {
-                    Text(stringResource(R.string.button_reset))
-                }
+        }
+    }
+}
 
-                Button(
-                    onClick = saveMeasurement,
-                    enabled = uiState.canSaveMeasurement
-                ) {
-                    Text(stringResource(R.string.button_save_measurement))
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun PortraitAddLogMeasurement(
+    uiState: LogMeasureUiState,
+    onScaleChange: (scaleChange: Float) -> Unit,
+    onResetClick: () -> Unit,
+    saveMeasurement: () -> Unit,
+    selectMeasureType: (measureType: MeasureType) -> Unit,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // TODO: implement length measuring
+        val measuredLength by rememberSaveable { mutableStateOf(0) }
+
+        val logDiameter = stringResource(R.string.log_diameter, uiState.diameter)
+        Text(logDiameter)
+        Text(text = "Log length: $measuredLength cm")
+
+        val state = rememberTransformableState(onTransformation = { zoomChange, _, _ ->
+            onScaleChange(zoomChange)
+        })
+
+        Box(modifier = Modifier
+            .fillMaxHeight(0.5f)
+            .background(MaterialTheme.colorScheme.secondary)
+            .transformable(state)
+            .paint(rememberAsyncImagePainter(uiState.imageUri), contentScale = ContentScale.Crop)
+        ) {
+
+            when (uiState.measureType) {
+                MeasureType.DIAMETER -> {
+                    CircleMeasurer(uiState)
+                }
+                MeasureType.LENGTH -> {
+//                    LinearMeasurer(uiState)
                 }
             }
         }
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            FilterChip(
+                selected = true,
+                onClick = {
+                    selectMeasureType(MeasureType.DIAMETER)
+                },
+                label = { Text(stringResource(R.string.option_diameter)) }
+            )
+            FilterChip(
+                selected = false,
+                onClick = {
+                    selectMeasureType(MeasureType.LENGTH)
+                },
+                label = { Text(stringResource(R.string.option_length)) }
+            )
+        }
+        Row {
+            Button(
+                onClick = onResetClick,
+                enabled = uiState.canReset,
+            ) {
+                Text(stringResource(R.string.button_reset))
+            }
+
+            Button(
+                onClick = saveMeasurement,
+                enabled = uiState.canSaveMeasurement
+            ) {
+                Text(stringResource(R.string.button_save_measurement))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CircleMeasurer(uiState: LogMeasureUiState) {
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+
+    Canvas(modifier = Modifier
+        .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+        .size(uiState.diameter.dp)
+        .pointerInput(Unit) {
+            detectDragGestures { change, dragAmount ->
+                change.consume()
+                offsetX += dragAmount.x
+                offsetY += dragAmount.y
+            }
+        }
+    ) {
+        val center = Offset(size.width / 2, size.height / 2)
+        drawCircle(Color.Blue, center = center, style = Stroke(width = 2.dp.toPx()))
+    }
+}
+
+@Composable
+private fun LinearMeasurer(uiState: LogMeasureUiState) {
+    // TODO: it's not working atm
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+
+    Canvas(modifier = Modifier
+        .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+        .size(uiState.diameter.dp)
+        .pointerInput(Unit) {
+            detectDragGestures { change, dragAmount ->
+                change.consume()
+                offsetX += dragAmount.x
+                offsetY += dragAmount.y
+            }
+        }
+    ) {
+        val start = Offset(size.width / 4, size.height / 4)
+        val end = Offset(size.width / 4 + 200, size.height / 4 + 200)
+        drawLine(Color.Blue, start, end, strokeWidth = 2.dp.toPx())
     }
 }
 
@@ -223,8 +297,9 @@ fun MeasureLogScreen(
 @Composable
 fun MeasureLogScreenPreview() {
     MeasureLogScreen(
-        uiState = LogMeasureUiState(showDiameterMeasurer = true, diameter = 30),
+        uiState = LogMeasureUiState(diameter = 30),
         consumeError = {},
+        selectMeasureType = {},
         onBack = {}
     )
 }

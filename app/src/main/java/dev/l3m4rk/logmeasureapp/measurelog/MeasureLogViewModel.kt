@@ -21,18 +21,15 @@ class MeasureLogViewModel @Inject constructor(
 ): ViewModel() {
 
     private val _radius = MutableStateFlow(DEFAULT_RADIUS)
-    private val _showDiameter = MutableStateFlow(false)
     private val _state = MutableStateFlow(LogMeasureUiState())
     private val state = _state.asStateFlow()
 
     val uiState: StateFlow<LogMeasureUiState> =
         combine(
             _radius.map { it * 2 },
-            _showDiameter,
             _state,
-        ) { diameter, shouldShow, state ->
+        ) { diameter, state ->
             state.copy(
-                showDiameterMeasurer = shouldShow,
                 diameter = diameter,
             )
         }
@@ -41,7 +38,6 @@ class MeasureLogViewModel @Inject constructor(
             WhileSubscribed,
             LogMeasureUiState()
         )
-
 
     fun scale(scale: Float) {
         _radius.update { radius ->
@@ -55,19 +51,20 @@ class MeasureLogViewModel @Inject constructor(
         }
     }
 
-    fun startDiameterMeasurement() {
-        _showDiameter.value = true
-    }
-
     fun consumeError() {
         _state.update { state ->
             state.copy(showError = false)
         }
     }
 
+    fun selectMeasureType(measureType: MeasureType) {
+        _state.update { state ->
+            state.copy(measureType = measureType)
+        }
+    }
+
     fun reset() {
         _radius.value = DEFAULT_RADIUS
-        _showDiameter.value = false
     }
 
     fun saveMeasurement() {

@@ -16,4 +16,5 @@
 
 
     <string name="log_diameter">"Log diameter: %1$d cm"</string>
+    <string name="error_measurement">Error during measurement. Try again.</string>
 </resources>
